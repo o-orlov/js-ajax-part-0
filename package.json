@@ -1,12 +1,13 @@
 {
   "name": "js-ajax-part-0",
   "version": "1.0.0",
-  "main": "index.js",
   "repository": "https://github.com/o-orlov/js-ajax-part-0.git",
   "author": "Oleg Orlov <o.orlov@outlook.com>",
   "license": "MIT",
   "scripts": {
     "start": "http-server",
+    "build": "parcel build index.html --public-url .",
+    "deploy": "yarn build && gh-pages -d dist",
     "lint": "eslint . --ext .js",
     "lint-fix": "eslint . --ext .js --fix"
   },
@@ -14,7 +15,9 @@
     "eslint": "^8.31.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "gh-pages": "^4.0.0",
     "http-server": "^14.1.1",
+    "parcel": "^2.8.2",
     "prettier": "^2.8.2"
   }
 }
