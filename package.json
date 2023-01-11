@@ -1,0 +1,8 @@
+{
+  "name": "js-ajax-part-0",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/o-orlov/js-ajax-part-0.git",
+  "author": "Oleg Orlov <o.orlov@outlook.com>",
+  "license": "MIT"
+}
