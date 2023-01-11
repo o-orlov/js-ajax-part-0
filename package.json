@@ -5,10 +5,16 @@
   "repository": "https://github.com/o-orlov/js-ajax-part-0.git",
   "author": "Oleg Orlov <o.orlov@outlook.com>",
   "license": "MIT",
+  "scripts": {
+    "start": "http-server",
+    "lint": "eslint . --ext .js",
+    "lint-fix": "eslint . --ext .js --fix"
+  },
   "devDependencies": {
     "eslint": "^8.31.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "http-server": "^14.1.1",
     "prettier": "^2.8.2"
   }
 }
