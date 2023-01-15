@@ -1,9 +1,12 @@
 import MediaWiki from '/mediaWiki.js';
 
 const SEARCH_DELAY = 300;
+const SEARCHES_KEY = 'searches';
+const LAST_SEARCHES_COUNT = 3;
 
 const searchEl = document.getElementById('search');
 const suggestionListEl = document.getElementById('suggestions');
+const lastSearchListEl = document.getElementById('last-searches');
 const contentEl = document.getElementById('content');
 
 let searchTimer;
@@ -17,15 +20,15 @@ function getSuggestions(searchResult) {
     const urls = searchResult[3];
 
     return titles.reduce((result, value, index) => {
-        result[value] = urls[index];
+        result.push([value, urls[index]]);
         return result;
-    }, {});
+    }, []);
 }
 
 function getSuggestionElements(suggestions) {
     const result = [];
 
-    for (const [title, url] of Object.entries(suggestions)) {
+    for (const [title, url] of suggestions) {
         const suggestionEl = document.createElement('li');
         suggestionEl.className = 'suggestion';
 
@@ -42,13 +45,41 @@ function getSuggestionElements(suggestions) {
     return result;
 }
 
-function clearSuggestions() {
-    suggestionListEl.innerHTML = '';
-}
-
 function onSuggestionClicked(event) {
     event.preventDefault();
     contentEl.src = this.href;
+    storeSearch(this.innerHTML, this.href);
+}
+
+function storeSearch(title, url) {
+    const searches = getStoredSearches() ?? [];
+    searches.push([title, url]);
+
+    try {
+        localStorage.setItem(SEARCHES_KEY, JSON.stringify(searches));
+    } catch (e) {
+        console.error(`Error while saving searches to storage: ${e.message}`);
+        return;
+    }
+
+    const lastSearches = searches.slice(-LAST_SEARCHES_COUNT);
+    lastSearches.reverse();
+    lastSearchListEl.innerHTML = '';
+    lastSearchListEl.append(...getSuggestionElements(lastSearches));
+}
+
+function getStoredSearches() {
+    const searches = localStorage.getItem(SEARCHES_KEY);
+    try {
+        return JSON.parse(searches);
+    } catch (e) {
+        console.error(`Error while parsing searches from storage: ${e.message}`);
+    }
+    return null;
+}
+
+function clearSuggestions() {
+    suggestionListEl.innerHTML = '';
 }
 
 searchEl.oninput = () => {
@@ -73,4 +104,16 @@ searchEl.oninput = () => {
         SEARCH_DELAY,
         searchEl.value
     );
+};
+
+window.onstorage = () => {
+    const searches = getStoredSearches();
+    if (!searches) {
+        return;
+    }
+
+    const lastSearches = searches.slice(-LAST_SEARCHES_COUNT);
+    lastSearches.reverse();
+    lastSearchListEl.innerHTML = '';
+    lastSearchListEl.append(...getSuggestionElements(lastSearches));
 };
