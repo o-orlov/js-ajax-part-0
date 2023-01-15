@@ -6,6 +6,20 @@
   <link rel="stylesheet" href="index.css">
 </head>
 <body>
-  <script src="index.js"></script>
+  <div class="search-box">
+    <input id="search" class="search" type="text" value="" placeholder="Search" autocomplete="off" spellcheck="false">
+    <ul id="suggestions" class="suggestions"></ul>
+  </div>
+  <div>
+    <div>
+      <h2 class="heading heading_level-2">Last Searches</h2>
+      <ul id="last-searches" class="last-searches"></ul>
+    </div>
+    <div>
+      <h2 class="heading heading_level-2">Content</h2>
+      <iframe id="content" class="content"></iframe>
+    </div>
+  </div>
+  <script type="module" src="index.js"></script>
 </body>
 </html>
