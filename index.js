@@ -2,6 +2,8 @@ import MediaWiki from '/mediaWiki.js';
 
 const SEARCH_DELAY = 300;
 const SEARCHES_KEY = 'searches';
+const LOCAL_SUGGESTIONS_COUNT = 5;
+const TOTAL_SUGGESTIONS_COUNT = 10;
 const LAST_SEARCHES_COUNT = 3;
 
 const searchEl = document.getElementById('search');
@@ -16,24 +18,26 @@ function getSuggestions(searchResult) {
         return [];
     }
 
+    const searchString = searchResult[0];
     const titles = searchResult[1];
     const urls = searchResult[3];
 
-    return titles.reduce((result, value, index) => {
-        result.push([value, urls[index]]);
+    return titles.reduce((result, title, index) => {
+        result.push([searchString, title, urls[index]]);
         return result;
     }, []);
 }
 
-function getSuggestionElements(suggestions) {
+function getSuggestionElements(suggestions, local = false) {
     const result = [];
 
-    for (const [title, url] of suggestions) {
+    for (const [searchString, title, url] of suggestions) {
         const suggestionEl = document.createElement('li');
         suggestionEl.className = 'suggestion';
 
         const linkEl = document.createElement('a');
         linkEl.className = 'suggestion__link';
+        linkEl.className += local ? ' suggestion__link_local' : ' suggestion__link_remote';
         linkEl.href = url;
         linkEl.append(title);
         linkEl.onclick = onSuggestionClicked;
@@ -48,12 +52,12 @@ function getSuggestionElements(suggestions) {
 function onSuggestionClicked(event) {
     event.preventDefault();
     contentEl.src = this.href;
-    storeSearch(this.innerHTML, this.href);
+    storeSearch(searchEl.value, this.innerHTML, this.href);
 }
 
-function storeSearch(title, url) {
-    const searches = getStoredSearches() ?? [];
-    searches.push([title, url]);
+function storeSearch(searchString, title, url) {
+    const searches = getStoredSearches() || [];
+    searches.push([searchString, title, url]);
 
     try {
         localStorage.setItem(SEARCHES_KEY, JSON.stringify(searches));
@@ -75,8 +79,22 @@ function getStoredSearches() {
     return null;
 }
 
+function searchInStorage(searchString, limit = LOCAL_SUGGESTIONS_COUNT) {
+    const searches = getStoredSearches();
+    if (!searches) {
+        return null;
+    }
+
+    const result = searches.filter(([searchString_, title, url]) => searchString_ === searchString);
+    if (!result) {
+        return null;
+    }
+
+    return result.slice(-limit);
+}
+
 function showLastSearches(searches = null) {
-    searches = searches ?? getStoredSearches();
+    searches = searches || getStoredSearches();
     if (!searches) {
         return;
     }
@@ -103,12 +121,16 @@ searchEl.oninput = () => {
     }
 
     searchTimer = setTimeout(
-        (title) => {
-            MediaWiki.searchWikiPagesByTitle(title)
+        (searchString) => {
+            const localSuggestions = searchInStorage(searchString, LOCAL_SUGGESTIONS_COUNT) || [];
+            const limit = TOTAL_SUGGESTIONS_COUNT - localSuggestions.length;
+
+            MediaWiki.searchWikiPagesByTitle(searchString, limit)
                 .then((searchResult) => {
-                    const suggestions = getSuggestions(searchResult);
+                    const remoteSuggestions = getSuggestions(searchResult);
                     clearSuggestions();
-                    suggestionListEl.append(...getSuggestionElements(suggestions));
+                    suggestionListEl.append(...getSuggestionElements(localSuggestions, true));
+                    suggestionListEl.append(...getSuggestionElements(remoteSuggestions));
                 })
                 .catch((e) => console.log(e.message));
         },
@@ -117,4 +139,4 @@ searchEl.oninput = () => {
     );
 };
 
-window.onstorage = showLastSearches;
+window.onstorage = () => showLastSearches();
