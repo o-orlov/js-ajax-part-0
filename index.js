@@ -4,6 +4,9 @@ const SEARCH_DELAY = 300;
 
 const searchEl = document.getElementById('search');
 const suggestionListEl = document.getElementById('suggestions');
+const contentEl = document.getElementById('content');
+
+let searchTimer;
 
 function getSuggestions(searchResult) {
     if (!searchResult) {
@@ -30,6 +33,7 @@ function getSuggestionElements(suggestions) {
         linkEl.className = 'suggestion__link';
         linkEl.href = url;
         linkEl.append(title);
+        linkEl.onclick = onSuggestionClicked;
         suggestionEl.append(linkEl);
 
         result.push(suggestionEl);
@@ -42,7 +46,10 @@ function clearSuggestions() {
     suggestionListEl.innerHTML = '';
 }
 
-let searchTimer;
+function onSuggestionClicked(event) {
+    event.preventDefault();
+    contentEl.src = this.href;
+}
 
 searchEl.oninput = () => {
     clearTimeout(searchTimer);
