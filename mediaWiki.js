@@ -39,12 +39,17 @@ async function get(searchParams) {
 
 module.searchWikiPagesByTitle = async function searchWikiPagesByTitle(title, limit = 10) {
     // https://www.mediawiki.org/wiki/API:Opensearch
+    if (!title || !(limit > 0)) {
+        return null;
+    }
+
     const searchParams = {
         action: 'opensearch',
         search: title,
         limit,
         format: 'json',
     };
+
     return get(searchParams);
 };
 
